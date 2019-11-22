@@ -11,7 +11,9 @@ BIN=pced3
 
 .PHONY: all clean
 
-all: $(OBJ)
+all: $(BIN)
+
+$(BIN): $(OBJ)
 	$(CC) $(LDFLAGS) -o $(BIN) $^
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c

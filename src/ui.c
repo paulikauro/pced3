@@ -43,7 +43,11 @@ int ui_input() {
 }
 
 static void draw_buffer(Buffer *buf) {
-    size_t rows_left = rows - 1;
+    if (buf == NULL) {
+        mvprintw(0, 0, "No buffer");
+        return;
+    }
+    size_t rows_left = rows;
     for (size_t line = 0; line < buf->number_of_lines; line++) {
         draw_line(line, &rows_left, buf);
         if (rows_left == 0) {
@@ -55,20 +59,20 @@ static void draw_buffer(Buffer *buf) {
 static void draw_line(size_t line, size_t *rows_left, Buffer *buf) {
     draw_line_number(line, rows - *rows_left);
     size_t current = buf->line_indices[line];
-    char current_char;
+    char current_char = '\0';
     int left_pad = 3;
     int x = left_pad;
-    do {
+    while (current < buf->capacity && current_char != '\n' && *rows_left > 0) {
         current_char = buf->data[current];
         int y = rows - *rows_left;
         mvaddch(y, x, current_char);
         current++;
         x++;
-        if (x > cols) {
+        if (x > cols - 1) {
             x = left_pad;
             (*rows_left)--;
         }
-    } while (current < buf->capacity && current_char != '\n' && *rows_left > 0);
+    }
     (*rows_left)--;
 }
 
@@ -82,7 +86,10 @@ static void draw_status(Editor *editor) {
     clrtobot();
     attron(A_STANDOUT);
     const char *mode_string = editor_mode_to_string(editor->current_mode);
-    size_t num_lines = editor->current_buffer->number_of_lines;
+    size_t num_lines =
+        editor->current_buffer == NULL
+        ? 0
+        : editor->current_buffer->number_of_lines;
     char status_text[cols];
     snprintf(status_text, cols, "%s %ld lines", mode_string, num_lines);
     mvprintw(rows - 1, 0, status_text);

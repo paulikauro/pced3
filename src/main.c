@@ -10,15 +10,9 @@ char *parse_command_line(int argc, char *argv[]);
 /* Temporary kludge */
 int main(int argc, char *argv[]) {
     char *filename = parse_command_line(argc, argv);
-    Editor editor = {0};
-    Buffer buf = {0};
-    editor.current_buffer = &buf;
-    FILE *file = fopen(filename, "r");
-    if (file == NULL) {
-        error_std("fopen");
-    }
-    buffer_from_file(editor.current_buffer, file);
-    fclose(file);
+    Editor editor;
+    editor_init(&editor);
+    editor_load_file(&editor, filename);
 
     ui_init();
     do {
@@ -26,7 +20,7 @@ int main(int argc, char *argv[]) {
     } while (ui_input() != 1);
     ui_free();
 
-    buffer_free(editor.current_buffer);
+    editor_free(&editor);
     return 0;
 }
 

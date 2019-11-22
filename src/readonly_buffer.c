@@ -28,6 +28,7 @@ void buffer_from_file(Buffer *buffer, FILE *file) {
 void buffer_free(Buffer *buffer) {
     assert(buffer != NULL);
     free(buffer->data);
+    free(buffer->line_indices);
     memset(buffer, 0, sizeof(*buffer));
 }
 

@@ -9,8 +9,13 @@ static void draw_status(Editor *editor);
 static void draw_buffer(Buffer *buf);
 static void draw_line(size_t line, size_t *rows_left, Buffer *buf);
 static void draw_line_number(size_t line, int y);
+static void position_cursor(Position pos);
 
+/* TODO: struct this up */
 static int rows, cols;
+static size_t first_line;
+/* TODO: determine this dynamically */
+static size_t left_pad = 3;
 
 void ui_init() {
     initscr();
@@ -28,18 +33,28 @@ void ui_draw(Editor *editor) {
     /* TODO: draw stuff */
     draw_buffer(editor->current_buffer);
     draw_status(editor);
+    position_cursor(editor->position);
     refresh();
 }
 
-int ui_input() {
+bool ui_input(Editor *editor) {
     int key = getch();
     switch (key) {
     case 27:
-        return 1;
+        return false;
+    case 'h':
+        editor_move(editor, DIR_LEFT);
+        break;
+    case 'l':
+        editor_move(editor, DIR_RIGHT);
     default:
         break;
     }
-    return 0;
+    return true;
+}
+
+static void position_cursor(Position pos) {
+    move(first_line - pos.line, left_pad + pos.column);
 }
 
 static void draw_buffer(Buffer *buf) {
@@ -48,7 +63,7 @@ static void draw_buffer(Buffer *buf) {
         return;
     }
     size_t rows_left = rows;
-    for (size_t line = 0; line < buf->number_of_lines; line++) {
+    for (size_t line = first_line; line < buf->number_of_lines; line++) {
         draw_line(line, &rows_left, buf);
         if (rows_left == 0) {
             return;
@@ -60,7 +75,6 @@ static void draw_line(size_t line, size_t *rows_left, Buffer *buf) {
     draw_line_number(line, rows - *rows_left);
     size_t current = buf->line_indices[line];
     char current_char = '\0';
-    int left_pad = 3;
     int x = left_pad;
     while (current < buf->capacity && current_char != '\n' && *rows_left > 0) {
         current_char = buf->data[current];
@@ -85,13 +99,21 @@ static void draw_line_number(size_t line, int y) {
 static void draw_status(Editor *editor) {
     clrtobot();
     attron(A_STANDOUT);
-    const char *mode_string = editor_mode_to_string(editor->current_mode);
+    char *mode_string = editor_mode_to_string(editor->current_mode);
     size_t num_lines =
         editor->current_buffer == NULL
         ? 0
         : editor->current_buffer->number_of_lines;
     char status_text[cols];
-    snprintf(status_text, cols, "%s %ld lines", mode_string, num_lines);
+    snprintf(
+        status_text,
+        cols,
+        "%s %ld lines %ld, %ld",
+        mode_string,
+        num_lines,
+        editor->position.line,
+        editor->position.column
+    );
     mvprintw(rows - 1, 0, status_text);
     clrtoeol();
     attroff(A_STANDOUT);

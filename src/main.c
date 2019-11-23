@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
     ui_init();
     do {
         ui_draw(&editor);
-    } while (ui_input() != 1);
+    } while (ui_input(&editor));
     ui_free();
 
     editor_free(&editor);

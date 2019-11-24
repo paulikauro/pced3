@@ -12,8 +12,8 @@ void editor_init(Editor *editor) {
     assert(editor != NULL);
     editor->current_buffer = NULL;
     editor->current_mode = EM_NORMAL;
-    Position pos = {0};
-    editor->position = pos;
+    editor->position.line = 1;
+    editor->position.column = 1;
 }
 
 void editor_free(Editor *editor) {
@@ -41,13 +41,17 @@ void editor_load_file(Editor *editor, char *filename) {
 
 void editor_move(Editor *editor, Direction direction) {
     Position *pos = &editor->position;
+    /* TODO: might go negative */
+    size_t visible_line_length =
+        buffer_line_length(editor->current_buffer, pos->line) - 1;
     switch (direction) {
     case DIR_RIGHT:
-        /* TODO: check */
-        pos->column++;
+        if (pos->column < visible_line_length) {
+            pos->column++;
+        }
         break;
     case DIR_LEFT:
-        if (pos->column > 0) {
+        if (pos->column > 1) {
            pos->column--;
         }
         break;

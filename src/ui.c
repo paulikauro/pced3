@@ -13,7 +13,7 @@ static void position_cursor(Position pos);
 
 /* TODO: struct this up */
 static int rows, cols;
-static size_t first_line;
+static size_t first_line = 1;
 /* TODO: determine this dynamically */
 static size_t left_pad = 3;
 
@@ -54,7 +54,8 @@ bool ui_input(Editor *editor) {
 }
 
 static void position_cursor(Position pos) {
-    move(first_line - pos.line, left_pad + pos.column);
+    /* TODO */
+    move(first_line - pos.line, left_pad + pos.column - 1);
 }
 
 static void draw_buffer(Buffer *buf) {
@@ -63,7 +64,7 @@ static void draw_buffer(Buffer *buf) {
         return;
     }
     size_t rows_left = rows;
-    for (size_t line = first_line; line < buf->number_of_lines; line++) {
+    for (size_t line = first_line; line <= buf->number_of_lines; line++) {
         draw_line(line, &rows_left, buf);
         if (rows_left == 0) {
             return;
@@ -73,14 +74,15 @@ static void draw_buffer(Buffer *buf) {
 
 static void draw_line(size_t line, size_t *rows_left, Buffer *buf) {
     draw_line_number(line, rows - *rows_left);
-    size_t current = buf->line_indices[line];
     char current_char = '\0';
     int x = left_pad;
-    while (current < buf->capacity && current_char != '\n' && *rows_left > 0) {
-        current_char = buf->data[current];
+    size_t column = 1;
+    size_t line_length = buffer_line_length(buf, line);
+    while (column <= line_length && current_char != '\n' && *rows_left > 0) {
+        current_char = buffer_get(buf, line, column);
         int y = rows - *rows_left;
         mvaddch(y, x, current_char);
-        current++;
+        column++;
         x++;
         if (x > cols - 1) {
             x = left_pad;
@@ -92,7 +94,7 @@ static void draw_line(size_t line, size_t *rows_left, Buffer *buf) {
 
 static void draw_line_number(size_t line, int y) {
     char line_number[3];
-    snprintf(line_number, 3, "%ld", line + 1);
+    snprintf(line_number, 3, "%ld", line);
     mvprintw(y, 0, line_number);
 }
 

@@ -8,11 +8,10 @@ _Noreturn void error_std(const char *message) {
 }
 
 void *allocate(size_t size) {
-    /* Zero-sized allocations are not allowed here,
-     * because malloc is free to return either NULL
-     * or a valid pointer for it, and NULL will cause
-     * a crash here.
-     */
+    // Zero-sized allocations are not allowed here,
+    // because malloc is free to return either NULL
+    // or a valid pointer for it, and NULL will cause
+    // a crash here.
     assert(size > 0);
     void *ptr;
     if ((ptr = malloc(size)) == NULL) {

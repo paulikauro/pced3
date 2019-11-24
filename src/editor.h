@@ -26,7 +26,7 @@ typedef struct Position {
 
 typedef struct Editor {
     EditorMode current_mode;
-    /* nullable */
+    // nullable
     Buffer *current_buffer;
     Position position;
 } Editor;
@@ -35,5 +35,5 @@ void editor_init(Editor *editor);
 void editor_free(Editor *editor);
 void editor_load_file(Editor *editor, char *filename);
 
-/* editor commands */
+// editor commands
 void editor_move(Editor *editor, Direction direction);

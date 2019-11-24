@@ -7,7 +7,7 @@
 
 char *parse_command_line(int argc, char *argv[]);
 
-/* Temporary kludge */
+// Temporary kludge
 int main(int argc, char *argv[]) {
     char *filename = parse_command_line(argc, argv);
     Editor editor;
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 }
 
 char *parse_command_line(int argc, char *argv[]) {
-    /* TODO */
+    // TODO
     if (argc < 2) {
         printf("usage: %s filename\n", argv[0]);
         exit(1);

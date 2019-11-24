@@ -11,10 +11,10 @@ static void draw_line(size_t line, size_t *rows_left, Buffer *buf);
 static void draw_line_number(size_t line, int y);
 static void position_cursor(Position pos);
 
-/* TODO: struct this up */
+// TODO: struct this up
 static int rows, cols;
 static size_t first_line = 1;
-/* TODO: determine this dynamically */
+// TODO: determine this dynamically
 static size_t left_pad = 3;
 
 void ui_init() {
@@ -30,7 +30,6 @@ void ui_free() {
 }
 
 void ui_draw(Editor *editor) {
-    /* TODO: draw stuff */
     draw_buffer(editor->current_buffer);
     draw_status(editor);
     position_cursor(editor->position);
@@ -54,7 +53,7 @@ bool ui_input(Editor *editor) {
 }
 
 static void position_cursor(Position pos) {
-    /* TODO */
+    // TODO
     move(first_line - pos.line, left_pad + pos.column - 1);
 }
 

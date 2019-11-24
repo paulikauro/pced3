@@ -3,7 +3,7 @@
 #include "editor.h"
 #include "utils.h"
 
-/* TODO: possibly move EditorMode here */
+// TODO: possibly move EditorMode here
 char *editor_mode_strings[] = {
     [EM_NORMAL] = "NORMAL",
 };
@@ -29,19 +29,19 @@ void editor_load_file(Editor *editor, char *filename) {
     editor->current_buffer = allocate(sizeof(*(editor->current_buffer)));
     FILE *file;
     if ((file = fopen(filename, "r")) == NULL) {
-        /* TODO: do not crash */
+        // TODO: do not crash
         error_std("fopen");
     }
     buffer_from_file(editor->current_buffer, file);
     if (fclose(file) == EOF) {
-        /* TODO: do not crash */
+        // TODO: do not crash
         error_std("fclose");
     }
 }
 
 void editor_move(Editor *editor, Direction direction) {
     Position *pos = &editor->position;
-    /* TODO: might go negative */
+    // TODO: might go negative
     size_t visible_line_length =
         buffer_line_length(editor->current_buffer, pos->line) - 1;
     switch (direction) {

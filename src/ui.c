@@ -6,16 +6,18 @@
 #include "editor.h"
 
 static void draw_status(Editor *editor);
-static void draw_buffer(Buffer *buf);
-static void draw_line(size_t line, size_t *rows_left, Buffer *buf);
+static void draw_buffer(Buffer *buf, Position *pos);
+static void draw_line(size_t line, size_t *rows_left, Buffer *buf, Position *pos);
 static void draw_line_number(size_t line, int y);
 // start inclusive, end exclusive
-static void draw_row(Buffer *buffer, int y, size_t line, size_t start, size_t end);
-static void position_cursor(Position pos);
+static void draw_row(Buffer *buffer, int y, size_t line, size_t start, size_t end, Position *pos);
+static void position_cursor();
 
 // TODO: struct this up
 static int rows, cols;
 static size_t first_line = 1;
+// for draw
+static size_t real_row, real_col;
 // TODO: determine this dynamically
 static size_t left_pad = 3;
 
@@ -32,9 +34,9 @@ void ui_free() {
 }
 
 void ui_draw(Editor *editor) {
-    draw_buffer(editor->current_buffer);
+    draw_buffer(editor->current_buffer, &(editor->position));
     draw_status(editor);
-    position_cursor(editor->position);
+    position_cursor();
     refresh();
 }
 
@@ -54,26 +56,27 @@ bool ui_input(Editor *editor) {
     return true;
 }
 
-static void position_cursor(Position pos) {
+static void position_cursor() {
     // TODO
-    move(first_line - pos.line, left_pad + pos.column - 1);
+    move(real_row, real_col);
+    // move(first_line - pos.line, left_pad + pos.column - 1);
 }
 
-static void draw_buffer(Buffer *buf) {
+static void draw_buffer(Buffer *buf, Position *pos) {
     if (buf == NULL) {
         mvprintw(0, 0, "No buffer");
         return;
     }
     size_t rows_left = rows;
     for (size_t line = first_line; line <= buf->number_of_lines; line++) {
-        draw_line(line, &rows_left, buf);
+        draw_line(line, &rows_left, buf, pos);
         if (rows_left == 0) {
             return;
         }
     }
 }
 
-static void draw_line(size_t line, size_t *rows_left, Buffer *buffer) {
+static void draw_line(size_t line, size_t *rows_left, Buffer *buffer, Position *pos) {
     draw_line_number(line, rows - *rows_left);
     size_t available_width = cols - left_pad;
     size_t line_length = buffer_line_length(buffer, line);
@@ -84,19 +87,24 @@ static void draw_line(size_t line, size_t *rows_left, Buffer *buffer) {
     while (*rows_left > 0 && start_column < line_length) {
         size_t row_length = cols_left > available_width ? available_width : cols_left;
         int y = rows - *rows_left;
-        draw_row(buffer, y, line, start_column, start_column + row_length);
+        draw_row(buffer, y, line, start_column, start_column + row_length, pos);
         cols_left -= row_length;
         start_column += row_length;
         (*rows_left)--;
     }
 }
 
-static void draw_row(Buffer *buffer, int y, size_t line, size_t start, size_t end) {
+static void draw_row(Buffer *buffer, int y, size_t line, size_t start, size_t end, Position *pos) {
     int x = left_pad;
     size_t column = start;
     for (; column < end; x++, column++) {
         uint32_t c = buffer_get(buffer, line, column);
         mvaddch(y, x, c);
+        // TODO: this is inefficient
+        if (column == pos->column && line == pos->line) {
+            real_row = y;
+            real_col = x;
+        }
     }
 }
 

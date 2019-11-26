@@ -50,6 +50,13 @@ bool ui_input(Editor *editor) {
         break;
     case 'l':
         editor_move(editor, DIR_RIGHT);
+        break;
+    case 'j':
+        editor_move(editor, DIR_DOWN);
+        break;
+    case 'k':
+        editor_move(editor, DIR_UP);
+        break;
     default:
         break;
     }

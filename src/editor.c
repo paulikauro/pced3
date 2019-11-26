@@ -8,6 +8,11 @@ char *editor_mode_strings[] = {
     [EM_NORMAL] = "NORMAL",
 };
 
+// TODO: do something with this
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+
+static void cap_column(Editor *editor);
+
 void editor_init(Editor *editor) {
     assert(editor != NULL);
     editor->current_buffer = NULL;
@@ -41,9 +46,9 @@ void editor_load_file(Editor *editor, char *filename) {
 
 void editor_move(Editor *editor, Direction direction) {
     Position *pos = &editor->position;
+    size_t real_line_length = buffer_line_length(editor->current_buffer, pos->line);
     // TODO: might go negative
-    size_t visible_line_length =
-        buffer_line_length(editor->current_buffer, pos->line) - 1;
+    size_t visible_line_length = real_line_length - 1;
     switch (direction) {
     case DIR_RIGHT:
         if (pos->column < visible_line_length) {
@@ -55,7 +60,25 @@ void editor_move(Editor *editor, Direction direction) {
            pos->column--;
         }
         break;
+    case DIR_DOWN:
+        if (pos->line < editor->current_buffer->number_of_lines) {
+            pos->line++;
+            cap_column(editor);
+        }
+        break;
+    case DIR_UP:
+        if (pos->line > 1) {
+            pos->line--;
+            cap_column(editor);
+        }
+        break;
     default:
         break;
     }
+}
+
+// Adjust current position's column to be within line_len.
+static void cap_column(Editor *editor) {
+    size_t line_len = buffer_line_length(editor->current_buffer, editor->position.line);
+    editor->position.column = MIN(editor->position.column, line_len);
 }

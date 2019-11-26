@@ -9,6 +9,8 @@ static void draw_status(Editor *editor);
 static void draw_buffer(Buffer *buf);
 static void draw_line(size_t line, size_t *rows_left, Buffer *buf);
 static void draw_line_number(size_t line, int y);
+// start inclusive, end exclusive
+static void draw_row(Buffer *buffer, int y, size_t line, size_t start, size_t end);
 static void position_cursor(Position pos);
 
 // TODO: struct this up
@@ -71,24 +73,31 @@ static void draw_buffer(Buffer *buf) {
     }
 }
 
-static void draw_line(size_t line, size_t *rows_left, Buffer *buf) {
+static void draw_line(size_t line, size_t *rows_left, Buffer *buffer) {
     draw_line_number(line, rows - *rows_left);
-    char current_char = '\0';
-    int x = left_pad;
-    size_t column = 1;
-    size_t line_length = buffer_line_length(buf, line);
-    while (column <= line_length && current_char != '\n' && *rows_left > 0) {
-        current_char = buffer_get(buf, line, column);
+    size_t available_width = cols - left_pad;
+    size_t line_length = buffer_line_length(buffer, line);
+    size_t start_column = 1;
+    // TODO: get rid of this
+    size_t cols_left = line_length;
+
+    while (*rows_left > 0 && start_column < line_length) {
+        size_t row_length = cols_left > available_width ? available_width : cols_left;
         int y = rows - *rows_left;
-        mvaddch(y, x, current_char);
-        column++;
-        x++;
-        if (x > cols - 1) {
-            x = left_pad;
-            (*rows_left)--;
-        }
+        draw_row(buffer, y, line, start_column, start_column + row_length);
+        cols_left -= row_length;
+        start_column += row_length;
+        (*rows_left)--;
     }
-    (*rows_left)--;
+}
+
+static void draw_row(Buffer *buffer, int y, size_t line, size_t start, size_t end) {
+    int x = left_pad;
+    size_t column = start;
+    for (; column < end; x++, column++) {
+        uint32_t c = buffer_get(buffer, line, column);
+        mvaddch(y, x, c);
+    }
 }
 
 static void draw_line_number(size_t line, int y) {
